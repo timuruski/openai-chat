@@ -4,10 +4,11 @@ require "uri"
 
 module OpenAI
   class Client
-    attr_reader :api_key
+    attr_reader :api_key, :model
 
-    def initialize(api_key = nil)
+    def initialize(api_key = nil, model: nil)
       @api_key = api_key || OpenAI.api_key
+      @model = model || OpenAI::DEFAULT_MODEL
     end
 
     def get_models
@@ -17,11 +18,20 @@ module OpenAI
     # POST https://api.openai.com/v1/completions
     def post_completion(prompt)
       params = {
-        "model" => OpenAI::DEFAULT_MODEL,
+        "model" => model,
         "prompt" => prompt.to_s,
       }
 
       post("/v1/completions", params)
+    end
+
+    def post_chat(messages)
+      params = {
+        "model" => model,
+        "messages" => Array(messages),
+      }
+
+      post("/v1/chat/completions", params)
     end
 
     # ---

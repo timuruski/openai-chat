@@ -7,7 +7,13 @@ module OpenAI
     end
 
     def initialize
-      @client = OpenAI::Client.new
+      @client = OpenAI::Client.new(model: "gpt-3.5-turbo")
+      @messages = [
+        {
+          "role" => "system",
+          "content" => "You are a helpful assistant.",
+        }
+      ]
     end
 
     def start
@@ -17,7 +23,7 @@ module OpenAI
         input = $stdin.gets
         break if input.nil?
 
-        if output = handle(input)
+        if output = handle_message(input)
           $stdout.print("> ", output, "\n")
           $stdout.print("$ ")
         end
@@ -26,17 +32,28 @@ module OpenAI
       exit
     end
 
-    def handle(input)
-      return if input.nil?
-
+    def handle_message(input)
       input.chomp!
 
       case input
       when "exit"
         exit
       else
-        resp = @client.post_completion(input)
-        resp.body.dig("choices", 0, "text").strip
+        @messages << {
+          "role" => "user",
+          "content" => input,
+        }
+
+        resp = @client.post_chat(@messages)
+        if resp.success?
+          message = resp.body.dig("choices", 0, "message")
+          @messages << message
+
+          message["content"].strip
+        else
+          error = resp.body.dig("error", "message")
+          warn "ERROR: #{error}"
+        end
       end
     end
   end
