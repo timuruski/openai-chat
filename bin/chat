@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+
+require "irb"
+require "open_ai"
+
+OpenAI.api_key = ENV["OPENAI_API_KEY"]
+
+OpenAI::Chat.start

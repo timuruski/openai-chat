@@ -7,6 +7,7 @@ module OpenAI
   # DEFAULT_MODEL = "gpt-3.5-turbo"
   DEFAULT_MODEL = "text-davinci-003"
 
+  autoload :Chat, "open_ai/chat"
   autoload :Client, "open_ai/client"
   autoload :Response, "open_ai/response"
 
