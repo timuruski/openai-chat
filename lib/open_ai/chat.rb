@@ -3,6 +3,7 @@ module OpenAI
     include Enumerable
 
     DEFAULT_MODEL = "gpt-3.5-turbo"
+    CHAT_PATH = "/v1/chat/completions"
 
     Message = Struct.new(:content, :role) do
       def to_s
@@ -18,7 +19,7 @@ module OpenAI
     end
 
     def initialize(model: nil)
-      @client = OpenAI::Client.new(model: model || DEFAULT_MODEL)
+      @client = OpenAI::Client.new
       @messages = []
     end
 
@@ -29,7 +30,7 @@ module OpenAI
     def push(message, role)
       @messages << Message.new(message, "user")
 
-      resp = @client.post_chat(@messages.map(&:to_h))
+      resp = post_chat(@messages.map(&:to_h))
       if resp.success?
         message = resp.body.dig("choices", 0, "message", "content").strip
         @messages << Message.new(message, "assistant")
@@ -39,6 +40,15 @@ module OpenAI
       end
 
       self
+    end
+
+    private def post_chat(messages)
+      params = {
+        "model" => DEFAULT_MODEL,
+        "messages" => Array(messages),
+      }
+
+      @client.post(CHAT_PATH, params)
     end
 
     def each(&block)

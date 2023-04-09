@@ -4,10 +4,6 @@ module OpenAI
     ASSISTANT_PROMPT = "  "
     SYSTEM_MESSAGE = /^\/system (.+)$/
 
-    def self.start
-      new.start
-    end
-
     def start
       reset
 
@@ -38,7 +34,7 @@ module OpenAI
 
       case input
       when "exit"
-        raise Interrupt
+        exit
       when "debug"
         debug
         "Done debugging!"
@@ -52,7 +48,7 @@ module OpenAI
         @chat.push(input, "user")
         @chat.last.content
       end
-    rescue error
+    rescue => error
       warn "ERROR: #{error}"
     end
 

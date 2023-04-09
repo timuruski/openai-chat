@@ -8,7 +8,12 @@ module OpenAI
 
     def initialize(api_key = nil, model: nil)
       @api_key = api_key || OpenAI.api_key
-      @model = model || OpenAI::DEFAULT_MODEL
+      @base_params = {
+        "model" => model || OpenAI::DEFAULT_MODEL,
+      }
+
+      url = URI.parse(BASE_URL)
+      @http = Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == "https")
     end
 
     def get_models
@@ -25,15 +30,6 @@ module OpenAI
       post("/v1/completions", params)
     end
 
-    def post_chat(messages)
-      params = {
-        "model" => model,
-        "messages" => Array(messages),
-      }
-
-      post("/v1/chat/completions", params)
-    end
-
     # ---
 
     def get(path, query = nil)
@@ -44,14 +40,15 @@ module OpenAI
       end
     end
 
-    def post(path, body = nil)
+    def post(path, params = nil)
       url = build_url(path)
-      body = JSON.generate(body) if body
       headers = build_headers
       headers["Content-Type"] = "application/json"
 
+      data = JSON.generate(@base_params.merge(params.to_h))
+
       http_request(url) do |http|
-        http.post(url.path, body, headers)
+        http.post(url.path, data, headers)
       end
     end
 
@@ -71,9 +68,7 @@ module OpenAI
     end
 
     private def http_request(url)
-      http_response = Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == "https") do |http|
-        yield(http) if block_given?
-      end
+      http_response = yield(@http)
 
       Response.new(http_response)
     end
