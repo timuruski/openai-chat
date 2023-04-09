@@ -1,74 +1,52 @@
-require "io/console"
-
 module OpenAI
   class Chat
-    USER_PROMPT = "$ "
-    ASSISTANT_PROMPT = "> "
+    include Enumerable
+
     DEFAULT_MODEL = "gpt-3.5-turbo"
 
-    def self.start
-      new.start
-    end
-
-    def initialize
-      @client = OpenAI::Client.new(model: DEFAULT_MODEL)
-    end
-
-    def start
-      reset
-
-      $stdout.print(USER_PROMPT)
-
-      loop do
-        input = $stdin.gets
-        break if input.nil?
-
-        if output = process(input)
-          $stdout.print("> ", output, "\n")
-          $stdout.print(USER_PROMPT)
-        end
+    Message = Struct.new(:content, :role) do
+      def to_s
+        content
       end
-    rescue Interrupt
-      exit
+
+      def to_h
+        {
+          "role" => role,
+          "content" => content,
+        }
+      end
     end
 
-    private def reset
-      @chat_messages = []
-      @chat_messages << message("system", "Answer as concisely as possible.")
-      @chat_messages << message("system", "Current date: #{Time.now.strftime("%Y-%m-%d")}.")
-      # @chat_messages << message("system", "You answer in rhymes.")
+    def initialize(model: nil)
+      @client = OpenAI::Client.new(model: model || DEFAULT_MODEL)
+      @messages = []
     end
 
-    private def process(input)
-      input.chomp!
+    def push!(message, role)
+      @messages << Message.new(message, role)
+    end
 
-      case input
-      when "exit"
-        raise Interrupt
-      when "reset"
-        reset
-        "Chat reset!"
+    def push(message, role)
+      @messages << Message.new(message, "user")
+
+      resp = @client.post_chat(@messages.map(&:to_h))
+      if resp.success?
+        message = resp.body.dig("choices", 0, "message", "content").strip
+        @messages << Message.new(message, "assistant")
       else
-        @chat_messages << message("user", input)
-
-        resp = @client.post_chat(@chat_messages)
-        if resp.success?
-          message = resp.body.dig("choices", 0, "message", "content").strip
-          @chat_messages << message("assistant", message)
-
-          message
-        else
-          error = resp.body.dig("error", "message")
-          warn "ERROR: #{error}"
-        end
+        error_msg = resp.body.dig("error", "message")
+        raise error_msg
       end
+
+      self
     end
 
-    private def message(role, content)
-      {
-        "role" => role,
-        "content" => content,
-      }
+    def each(&block)
+      @messages.each(&block)
+    end
+
+    def last
+      @messages.last
     end
   end
 end

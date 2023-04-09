@@ -4,11 +4,11 @@ module OpenAI
   end
 
   BASE_URL = "https://api.openai.com/"
-  # DEFAULT_MODEL = "gpt-3.5-turbo"
   DEFAULT_MODEL = "text-davinci-003"
   CHAT_MODEL = "gpt-3.5-turbo"
 
   autoload :Chat, "open_ai/chat"
+  autoload :ChatLoop, "open_ai/chat_loop"
   autoload :Client, "open_ai/client"
   autoload :Response, "open_ai/response"
 
