@@ -1,8 +1,14 @@
+require "yaml"
+
 module OpenAI
   class ChatLoop
     USER_PROMPT = "$ "
     ASSISTANT_PROMPT = "  "
     SYSTEM_MESSAGE = /^\/system (.+)$/
+
+    def initialize(log_path: nil)
+      @log_path = File.expand_path(log_path) if log_path
+    end
 
     def start
       reset
@@ -22,11 +28,29 @@ module OpenAI
       exit
     end
 
-    private def reset
+    def reset
       @chat = Chat.new
-      @chat.push!("Answer as concisely as possible.", "system")
-      @chat.push!("Current date: #{Time.now.strftime("%Y-%m-%d")}.", "system")
-      # @chat.push!("You answer in rhymes.", "system")
+      if @log_path
+        load(@log_path)
+      else
+        @chat.push!("Answer as concisely as possible.", "system")
+        @chat.push!("Current date: #{Time.now.strftime("%Y-%m-%d")}.", "system")
+        # @chat.push!("You answer in rhymes.", "system")
+      end
+    end
+
+    def load(path)
+      @chat = Chat.new
+
+      chat_log = YAML.load File.read(path)
+      chat_log.each do |msg|
+        @chat.push!(msg["content"], msg["role"])
+      end
+    end
+
+    def dump(path)
+      chat_log = YAML.dump(@chat.to_a)
+      File.write(path, chat_log)
     end
 
     private def process(input)
@@ -34,13 +58,20 @@ module OpenAI
 
       case input
       when "exit"
+        dump(@log_path) if @log_path
         exit
       when "debug"
         debug
         "Done debugging!"
       when "reset"
         reset
-        "Chat reset!"
+        "> Chat reset!"
+      when "/dump"
+        dump(@log_path) if @log_path
+        "> Chat log dumped!"
+      when "/load"
+        load(@log_path) if @log_path
+        "> Chat log loaded!"
       when SYSTEM_MESSAGE
         @chat.push!($1, "system")
         "OK: #{@chat.last.content}"

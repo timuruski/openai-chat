@@ -6,4 +6,4 @@ require "open_ai"
 
 OpenAI.api_key = ENV["OPENAI_API_KEY"]
 
-OpenAI::ChatLoop.new.start
+OpenAI::ChatLoop.new(log_path: ARGV.first).start

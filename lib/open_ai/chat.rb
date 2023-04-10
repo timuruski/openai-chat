@@ -18,13 +18,9 @@ module OpenAI
       end
     end
 
-    def initialize(model: nil)
-      @client = OpenAI::Client.new
+    def initialize(client: nil)
+      @client = client || OpenAI.client
       @messages = []
-    end
-
-    def push!(message, role)
-      @messages << Message.new(message, role)
     end
 
     def push(message, role)
@@ -39,7 +35,12 @@ module OpenAI
         raise error_msg
       end
 
-      self
+      @messages.last
+    end
+
+    def push!(message, role)
+      @messages << Message.new(message, role)
+      @messages.last
     end
 
     private def post_chat(messages)
@@ -51,12 +52,16 @@ module OpenAI
       @client.post(CHAT_PATH, params)
     end
 
+    def last
+      @messages.last
+    end
+
     def each(&block)
       @messages.each(&block)
     end
 
-    def last
-      @messages.last
+    def to_a
+      @messages.map(&:to_h)
     end
   end
 end
