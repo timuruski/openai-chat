@@ -1,7 +1,7 @@
 require "yaml"
 
 module OpenAI
-  class ChatLoop
+  class ChatSession
     USER_PROMPT = "$ "
     ASSISTANT_PROMPT = "  "
     SYSTEM_MESSAGE = /^\/system (.+)$/
