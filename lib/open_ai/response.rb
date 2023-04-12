@@ -8,6 +8,10 @@ module OpenAI
       @http_response = http_response
     end
 
+    def [](key)
+      body[key]
+    end
+
     def body
       @body ||= JSON.parse(http_response.body)
     end

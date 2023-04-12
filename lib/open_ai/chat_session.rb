@@ -17,15 +17,48 @@ module OpenAI
 
       loop do
         input = $stdin.gets
+
         break if input.nil?
+        input.chomp!
 
         if output = process(input)
           $stdout.print(ASSISTANT_PROMPT, output, "\n")
-          $stdout.print(USER_PROMPT)
         end
+
+        $stdout.print(USER_PROMPT)
+      rescue Interrupt
+        next
       end
-    rescue Interrupt
-      exit
+    end
+
+    private def process(input)
+      case input
+      when ""
+        nil
+      when "exit"
+        dump(@log_path) if @log_path
+        exit
+      when "debug"
+        debug
+        "Done debugging!"
+      when "reset"
+        reset
+        "> Chat reset!"
+      when "/dump"
+        dump(@log_path) if @log_path
+        "> Chat log dumped!"
+      when "/load"
+        load(@log_path) if @log_path
+        "> Chat log loaded!"
+      when SYSTEM_MESSAGE
+        @chat.push!($1, "system")
+        "OK: #{@chat.last.content}"
+      else
+        @chat.push(input, "user")
+        @chat.last.content
+      end
+    rescue => error
+      warn "ERROR: #{error}"
     end
 
     def reset
@@ -51,36 +84,6 @@ module OpenAI
     def dump(path)
       chat_log = YAML.dump(@chat.to_a)
       File.write(path, chat_log)
-    end
-
-    private def process(input)
-      input.chomp!
-
-      case input
-      when "exit"
-        dump(@log_path) if @log_path
-        exit
-      when "debug"
-        debug
-        "Done debugging!"
-      when "reset"
-        reset
-        "> Chat reset!"
-      when "/dump"
-        dump(@log_path) if @log_path
-        "> Chat log dumped!"
-      when "/load"
-        load(@log_path) if @log_path
-        "> Chat log loaded!"
-      when SYSTEM_MESSAGE
-        @chat.push!($1, "system")
-        "OK: #{@chat.last.content}"
-      else
-        @chat.push(input, "user")
-        @chat.last.content
-      end
-    rescue => error
-      warn "ERROR: #{error}"
     end
 
     private def debug

@@ -16,22 +16,6 @@ module OpenAI
       @http = Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == "https")
     end
 
-    def get_models
-      get("/v1/models")
-    end
-
-    # POST https://api.openai.com/v1/completions
-    def post_completion(prompt)
-      params = {
-        "model" => model,
-        "prompt" => prompt.to_s,
-      }
-
-      post("/v1/completions", params)
-    end
-
-    # ---
-
     def get(path, query = nil)
       url = build_url(path, query)
 
