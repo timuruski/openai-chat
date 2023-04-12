@@ -1,3 +1,4 @@
+require "readline"
 require "yaml"
 
 module OpenAI
@@ -13,10 +14,8 @@ module OpenAI
     def start
       reset
 
-      $stdout.print(USER_PROMPT)
-
       loop do
-        input = $stdin.gets
+        input = Readline.readline(USER_PROMPT)
 
         break if input.nil?
         input.chomp!
@@ -24,10 +23,9 @@ module OpenAI
         if output = process(input)
           $stdout.print(ASSISTANT_PROMPT, output, "\n")
         end
-
-        $stdout.print(USER_PROMPT)
       rescue Interrupt
-        next
+        # Trap ^C presses
+        $stdout.print "\n"
       end
     end
 
