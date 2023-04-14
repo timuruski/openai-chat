@@ -9,8 +9,10 @@ module OpenAI
 
   autoload :Chat, "open_ai/chat"
   autoload :ChatSession, "open_ai/chat_session"
+  autoload :ChatStream, "open_ai/chat_stream"
   autoload :Client, "open_ai/client"
   autoload :Completion, "open_ai/completion"
+  autoload :Message, "open_ai/message"
   autoload :Response, "open_ai/response"
 
   def self.client

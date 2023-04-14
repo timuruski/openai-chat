@@ -3,8 +3,7 @@ require "yaml"
 
 module OpenAI
   class ChatSession
-    USER_PROMPT = "$ "
-    ASSISTANT_PROMPT = "  "
+    USER_PROMPT = "> "
     SYSTEM_MESSAGE = /^\/system (.+)$/
 
     def initialize(log_path: nil)
@@ -52,15 +51,19 @@ module OpenAI
         @chat.push!($1, "system")
         "OK: #{@chat.last.content}"
       else
-        @chat.push(input, "user")
-        @chat.last.content
+        @chat.push(input, "user") do |word|
+          $stdout.print(word)
+        end
+        $stdout.print("\n\n")
+
+        nil
       end
     rescue => error
       warn "ERROR: #{error}"
     end
 
     def reset
-      @chat = Chat.new
+      @chat = ChatStream.new
       if @log_path
         load(@log_path)
       else
@@ -71,7 +74,7 @@ module OpenAI
     end
 
     def load(path)
-      @chat = Chat.new
+      @chat = ChatStream.new
 
       chat_log = YAML.load File.read(path)
       chat_log.each do |msg|
