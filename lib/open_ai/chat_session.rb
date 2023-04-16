@@ -19,7 +19,7 @@ module OpenAI
         break if input.nil?
         input.chomp!
 
-        if output = process(input)
+        if (output = process(input))
           $stdout.print(ASSISTANT_PROMPT, output, "\n")
         end
       rescue Interrupt

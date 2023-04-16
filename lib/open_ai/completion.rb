@@ -21,7 +21,7 @@ module OpenAI
       params = {
         "n" => @n,
         "model" => OpenAI::DEFAULT_MODEL,
-        "prompt" => @prompt.to_s,
+        "prompt" => @prompt.to_s
       }
 
       OpenAI.client.post("/v1/completions", params)

@@ -7,7 +7,7 @@ module OpenAI
     def to_h
       {
         "role" => role,
-        "content" => content,
+        "content" => content
       }
     end
   end

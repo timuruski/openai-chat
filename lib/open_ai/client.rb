@@ -9,7 +9,7 @@ module OpenAI
     def initialize(api_key = nil, model: nil)
       @api_key = api_key || OpenAI.api_key
       @base_params = {
-        "model" => model || OpenAI::DEFAULT_MODEL,
+        "model" => model || OpenAI::DEFAULT_MODEL
       }
     end
 
@@ -64,7 +64,7 @@ module OpenAI
 
     private def build_headers
       {
-        "Authorization" => "Bearer #{api_key}",
+        "Authorization" => "Bearer #{api_key}"
       }
     end
   end

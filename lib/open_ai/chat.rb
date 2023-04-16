@@ -34,7 +34,7 @@ module OpenAI
     private def post_chat(messages)
       params = {
         "model" => OpenAI::CHAT_MODEL,
-        "messages" => Array(messages),
+        "messages" => Array(messages)
       }
 
       @client.post(CHAT_PATH, params)

@@ -30,7 +30,7 @@ module OpenAI
       params = {
         "model" => OpenAI::CHAT_MODEL,
         "messages" => Array(messages),
-        "stream" => true,
+        "stream" => true
       }
 
       @client.post(CHAT_PATH, params) do |event|
@@ -38,7 +38,7 @@ module OpenAI
           _, data = line.split(": ", 2)
 
           if data != "[DONE]"
-            if content =  JSON.parse(data).dig("choices", 0, "delta", "content")
+            if (content = JSON.parse(data).dig("choices", 0, "delta", "content"))
               yield content
               @last_message << content
             end
