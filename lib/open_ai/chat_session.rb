@@ -4,7 +4,10 @@ require "yaml"
 module OpenAI
   class ChatSession
     USER_PROMPT = "> "
+    ASSISTANT_PROMPT = ""
     SYSTEM_MESSAGE = /^\/system (.+)$/
+
+    attr_reader :chat
 
     def initialize(log_path: nil)
       @log_path = File.expand_path(log_path) if log_path

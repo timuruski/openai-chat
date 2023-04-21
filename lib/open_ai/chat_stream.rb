@@ -4,15 +4,18 @@ module OpenAI
 
     CHAT_PATH = "/v1/chat/completions"
 
+    attr_reader :client, :chunks, :resp
+
     def initialize(client: nil)
       @client = client || OpenAI.client
+      @chunks = []
       @messages = []
     end
 
     def push(message, role = "user", &block)
       @messages << Message.new(message, role)
 
-      resp = post_chat(@messages.map(&:to_h), &block)
+      @resp = post_chat(@messages.map(&:to_h), &block)
       if resp.success?
         # message = resp.body.dig("choices", 0, "message", "content").strip
         @messages << Message.new(@last_message, "assistant")
@@ -26,6 +29,7 @@ module OpenAI
 
     private def post_chat(messages, &block)
       @last_message = ""
+      @chunks.clear
 
       params = {
         "model" => OpenAI::CHAT_MODEL,
@@ -33,12 +37,14 @@ module OpenAI
         "stream" => true
       }
 
-      @client.post(CHAT_PATH, params) do |event|
-        event.lines("\n\n", chomp: true).each do |line|
+      @client.post(CHAT_PATH, params) do |chunk|
+        chunk.lines("\n\n", chomp: true).each do |line|
+          @chunks << line
           _, data = line.split(": ", 2)
 
           if data != "[DONE]"
-            if (content = JSON.parse(data).dig("choices", 0, "delta", "content"))
+            json = JSON.parse(data)
+            if (content = json.dig("choices", 0, "delta", "content"))
               yield content
               @last_message << content
             end
