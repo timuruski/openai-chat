@@ -5,13 +5,12 @@ module OpenAI
     CHAT_PATH = "/v1/chat/completions"
     DEFAULT_MODEL = "gpt-3.5-turbo"
 
-    attr_reader :client, :chunks
+    attr_reader :client, :model
 
     def initialize(client: nil, model: nil)
       @client = client || OpenAI.client
       @model = model || DEFAULT_MODEL
 
-      @chunks = []
       @messages = []
     end
 
@@ -20,7 +19,6 @@ module OpenAI
 
       reply, resp = post_chat(@messages.map(&:to_h), &block)
       if resp.success?
-        # message = resp.body.dig("choices", 0, "message", "content").strip
         @messages << Message.new(reply, "assistant")
       else
         error_msg = resp.body.dig("error", "message")
@@ -32,30 +30,39 @@ module OpenAI
 
     private def post_chat(messages, &block)
       reply = ""
-      @chunks.clear
+      stream = !!block
 
       params = {
         "model" => @model,
         "messages" => Array(messages),
-        "stream" => true
+        "stream" => stream
       }
 
-      resp = @client.post(CHAT_PATH, params) do |chunk|
+      if stream
+        reply = ""
+        resp = @client.post(CHAT_PATH, params, &handle_stream(reply, block))
+      else
+        resp = @client.post(CHAT_PATH, params)
+        reply = resp.body.dig("choices", 0, "message", "content").strip
+      end
+
+      [reply, resp]
+    end
+
+    private def handle_stream(reply, block)
+      proc do |chunk|
         chunk.lines("\n\n", chomp: true).each do |line|
-          @chunks << line
           _, data = line.split(": ", 2)
 
           if data != "[DONE]"
             json = JSON.parse(data)
             if (content = json.dig("choices", 0, "delta", "content"))
-              yield content
+              block.yield content
               reply << content
             end
           end
         end
       end
-
-      [reply, resp]
     end
 
     # TODO Merge events properly.

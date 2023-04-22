@@ -13,11 +13,15 @@ module OpenAI
     end
 
     def body
-      @body ||= JSON.parse(http_response.body)
+      @body ||= parse_body
     end
 
     private def parse_body
-      @body ||= JSON.parse(http_response.body)
+      if http_response.body.is_a?(String)
+        JSON.parse(http_response.body)
+      else
+        {}
+      end
     end
 
     def success?

@@ -13,7 +13,7 @@ module OpenAI
       @log_path = File.expand_path(log_path) if log_path
     end
 
-    def start
+    def start(&block)
       reset
 
       loop do
@@ -22,7 +22,7 @@ module OpenAI
         break if input.nil?
         input.chomp!
 
-        if (output = process(input))
+        if (output = process(input, &block))
           $stdout.print(ASSISTANT_PROMPT, output, "\n")
         end
       rescue Interrupt
@@ -31,7 +31,7 @@ module OpenAI
       end
     end
 
-    private def process(input)
+    private def process(input, &block)
       case input
       when ""
         nil
@@ -54,7 +54,7 @@ module OpenAI
         @chat.push!($1, "system")
         "OK: #{@chat.last.content}"
       else
-        push_message(input)
+        query(input, &block)
         $stdout.print("\n")
         nil
       end
@@ -62,11 +62,13 @@ module OpenAI
       warn "ERROR: #{error}"
     end
 
-    def push_message(message)
-      @chat.push(message, "user") do |word|
-        $stdout.print(word)
+    def query(message, &block)
+      if block
+        @chat.push(message, "user", &block)
+        $stdout.print("\n")
+      else
+        $stdout.print(@chat.push(message, "user"), "\n")
       end
-      $stdout.print("\n")
     end
 
     def reset
