@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+
+require "open_ai"
+
+# 1. Read common configuration
+# 2. Load model and chat history
+# 3. Start interactive session if needed
+# 4. Push new message and print response
+
+OpenAI.api_key = ENV["OPENAI_API_KEY"]
+
+CHAT_LOG = File.expand_path("~/.chat-history.yml")
+
+session = OpenAI::ChatSession.new(log_path: CHAT_LOG)
+session.reset
+session.push_message(ARGV.join(" "))
+session.dump(CHAT_LOG)

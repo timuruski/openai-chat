@@ -54,15 +54,19 @@ module OpenAI
         @chat.push!($1, "system")
         "OK: #{@chat.last.content}"
       else
-        @chat.push(input, "user") do |word|
-          $stdout.print(word)
-        end
-        $stdout.print("\n\n")
-
+        push_message(input)
+        $stdout.print("\n")
         nil
       end
     rescue => error
       warn "ERROR: #{error}"
+    end
+
+    def push_message(message)
+      @chat.push(message, "user") do |word|
+        $stdout.print(word)
+      end
+      $stdout.print("\n")
     end
 
     def reset
@@ -77,9 +81,11 @@ module OpenAI
     end
 
     def load(path)
+      return unless File.exist?(path)
+
       @chat = ChatStream.new
 
-      chat_log = YAML.load File.read(path)
+      chat_log = YAML.load(File.read(path)).to_a
       chat_log.each do |msg|
         @chat.push!(msg["content"], msg["role"])
       end

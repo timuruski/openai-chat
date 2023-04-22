@@ -16,8 +16,12 @@ module OpenAI
       @body ||= JSON.parse(http_response.body)
     end
 
+    private def parse_body
+      @body ||= JSON.parse(http_response.body)
+    end
+
     def success?
-      http_response.code == "200"
+      http_response.is_a?(Net::HTTPSuccess)
     end
   end
 end
