@@ -72,7 +72,7 @@ module OpenAI
     end
 
     def reset
-      @chat = ChatStream.new
+      @chat = Chat.new
       if @log_path
         load(@log_path)
       else
@@ -85,7 +85,7 @@ module OpenAI
     def load(path)
       return unless File.exist?(path)
 
-      @chat = ChatStream.new
+      @chat = Chat.new
 
       chat_log = YAML.load(File.read(path)).to_a
       chat_log.each do |msg|
