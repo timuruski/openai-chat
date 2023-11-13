@@ -9,8 +9,9 @@ module OpenAI
 
     attr_reader :chat
 
-    def initialize(log_path: nil)
+    def initialize(log_path: nil, base_params: nil)
       @log_path = File.expand_path(log_path) if log_path
+      @base_params = base_params
     end
 
     def start(&block)
@@ -38,10 +39,10 @@ module OpenAI
       when "exit"
         dump(@log_path) if @log_path
         exit
-      when "debug"
+      when "/debug"
         debug
         "Done debugging!"
-      when "reset"
+      when "/reset"
         reset
         "> Chat reset!"
       when "/dump"
@@ -69,17 +70,17 @@ module OpenAI
       else
         $stdout.print(@chat.push(message, "user"), "\n")
       end
-    rescue Interrupt
-      binding.irb
+    # rescue Interrupt
+    #   binding.irb
     end
 
     def reset
-      @chat = Chat.new
+      @chat = Chat.new(base_params: @base_params)
       if @log_path
         load(@log_path)
       else
         @chat.push!("Answer as concisely as possible.", "system")
-        @chat.push!("Current date: #{Time.now.strftime("%Y-%m-%d")}.", "system")
+        # @chat.push!("Current date: #{Time.now.strftime("%Y-%m-%d")}.", "system")
         # @chat.push!("You answer in rhymes.", "system")
       end
     end

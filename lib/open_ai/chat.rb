@@ -7,8 +7,8 @@ module OpenAI
 
     attr_reader :client, :model
 
-    def initialize(client: nil, model: DEFAULT_MODEL)
-      @client = client || Client.new(model: model)
+    def initialize(client: nil, model: DEFAULT_MODEL, base_params: nil)
+      @client = client || Client.new(model: model, base_params: base_params)
       @messages = []
     end
 

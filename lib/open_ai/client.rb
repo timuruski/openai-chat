@@ -6,10 +6,11 @@ module OpenAI
   class Client
     attr_reader :api_key, :model
 
-    def initialize(api_key: nil, model: nil)
+    def initialize(api_key: nil, model: nil, base_params: nil)
       @api_key = api_key || OpenAI.api_key
       @base_params = {
-        "model" => model || OpenAI::DEFAULT_MODEL
+        "model" => model || OpenAI::DEFAULT_MODEL,
+        **(base_params || {})
       }
     end
 
