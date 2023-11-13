@@ -69,6 +69,8 @@ module OpenAI
       else
         $stdout.print(@chat.push(message, "user"), "\n")
       end
+    rescue Interrupt
+      binding.irb
     end
 
     def reset

@@ -13,10 +13,7 @@ OpenAI.api_key = ENV["OPENAI_API_KEY"]
 
 CHAT_LOG = File.expand_path("~/.chat-history.yml")
 
-session = OpenAI::ChatSession.new(log_path: CHAT_LOG) do |reply|
-  print reply
-end
-
+session = OpenAI::ChatSession.new(log_path: CHAT_LOG)
 session.reset
 session.query(ARGV.join(" ")) do |reply|
   print reply

@@ -1,6 +1,12 @@
 module OpenAI
   class << self
-    attr_accessor :api_key
+    attr_accessor :api_key, :stop
+  end
+
+  def self.trap_interrupt!
+    Signal.trap("INT") do
+      self.stop = true
+    end
   end
 
   BASE_URL = "https://api.openai.com/"

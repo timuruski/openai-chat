@@ -52,7 +52,10 @@ module OpenAI
           _, data = line.split(": ", 2)
 
           if data != "[DONE]"
-            json = JSON.parse(data)
+            # Sometimes a chunk is yielded before it contains full JSON, subsequent calls
+            # replay the same object, so this appears to work correctly.
+            json = JSON.parse(data) rescue {}
+
             if (content = json.dig("choices", 0, "delta", "content"))
               block.yield content
               reply << content
